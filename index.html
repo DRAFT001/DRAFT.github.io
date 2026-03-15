@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draft - Portfolio</title>
+    
+    <link rel="icon" type="image/png" href="img/LOGO_DRAFT_NEGRO.webp">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --color-fondo: #E0E0E0;
+            --color-negro: #000000;
+            --color-azul: #381CD5;
+            --color-azul-invertido: #A8FC0B; 
+            --fuente-principal: 'Space Mono', monospace;
+            --gap-reticula: clamp(20px, 3vw, 40px); 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        ::selection { background-color: var(--color-azul); color: var(--color-fondo); }
+        ::-moz-selection { background-color: var(--color-azul); color: var(--color-fondo); }
+
+        body, html {
+            width: 100%; overflow-x: hidden; 
+            background-color: var(--color-fondo);
+            scrollbar-width: none; -ms-overflow-style: none;  
+            overscroll-behavior: none;
+        }
+        body::-webkit-scrollbar { display: none; }
+
+        /* ================================================= */
+        /* CURSOR PERSONALIZADO                              */
+        /* ================================================= */
+        @media (pointer: fine) { body { cursor: none; } }
+        
+        .cursor-personalizado {
+            position: fixed; top: 0; left: 0; width: 12px; height: 12px;
+            background-color: rgba(0, 0, 0, 0.8);
+            pointer-events: none; z-index: 9999;
+            margin-left: -6px; margin-top: -6px;
+            transition: opacity 0.2s ease, background-color 0.4s ease;
+            display: none;
+        }
+        
+        @media (pointer: fine) { .cursor-personalizado { display: block; } }
+        
+        body.modo-work .cursor-personalizado {
+            background-color: rgba(224, 224, 224, 0.8);
+        }
+
+        /* --- MOTOR BILINGÜE BASE --- */
+        body.lang-eng .txt-es { display: none !important; }
+        body.lang-esp .txt-en { display: none !important; }
+
+        .texto-complementario { font-family: var(--fuente-principal); font-weight: 700; font-size: 14px; text-transform: uppercase; color: var(--color-negro); }
+
+        /* --- BOTONES ANIMADOS BASE --- */
+        .btn-animado, .btn-animado-work { text-decoration: none; position: relative; overflow: hidden; display: inline-flex; flex-direction: column; cursor: pointer; transition: color 0.4s ease; font-family: var(--fuente-principal); font-weight: 700; font-size: 14px; height: 20px; line-height: 20px; text-transform: uppercase; color: var(--color-negro); }
+        .btn-animado-work { color: #E0E0E0; }
+        .btn-grande { font-size: 20px; height: 28px; line-height: 28px; }
+        .btn-animado:hover, .btn-animado-work:hover { color: var(--color-azul) !important; }
+        
+        .texto-original, .texto-copia { display: flex; white-space: pre; }
+        .texto-copia { position: absolute; top: 100%; left: 0; }
+        .btn-animado span span, .btn-animado-work span span, .texto-transicion span span { display: inline-block; transition-property: transform; transition-duration: 0.5s; transition-timing-function: cubic-bezier(0.76, 0, 0.24, 1); }
+        .btn-animado:hover .texto-original span, .btn-animado:hover .texto-copia span, .btn-animado-work:hover .texto-original span, .btn-animado-work:hover .texto-copia span, .texto-transicion.activado .texto-original span, .texto-transicion.activado .texto-copia span { transform: translateY(-100%); }
+
+
+        /* ================================================= */
+        /* PÁGINA PRINCIPAL Y MOTOR GSAP                     */
+        /* ================================================= */
+        .lienzo-principal {
+            width: 100%; height: 100dvh;
+            padding: 40px 60px; position: relative; z-index: 10;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .reticula-maestra {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: var(--gap-reticula); 
+            width: 100%; height: 100%;
+            grid-template-rows: auto 1fr auto auto; 
+            position: relative;
+        }
+
+        body.modo-about .lienzo-principal { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .logo-home { grid-column: 1 / 3; grid-row: 1; align-self: start; cursor: pointer; z-index: 50; transition: opacity 0.3s; }
+        .logo-home:hover { opacity: 0.5; }
+        .logo-home img { width: 66px; height: 20px; object-fit: contain; }
+        
+        .nav-superior { grid-column: 1 / -1; grid-row: 1; justify-self: center; align-self: start; display: flex; gap: 50px; z-index: 50; }
+        .reloj { grid-column: 6 / -1; grid-row: 1; justify-self: end; align-self: start; z-index: 50; }
+        .ubicacion { grid-column: 1 / 4; grid-row: 4; justify-self: start; align-self: end; z-index: 50; }
+        .copyright { grid-column: 6 / -1; grid-row: 4; justify-self: end; align-self: end; z-index: 50; }
+        .nav-inferior { grid-column: 4 / 6; grid-row: 4; justify-self: center; align-self: end; display: flex; gap: 50px; z-index: 50; transition: opacity 0.4s; }
+
+        body.modo-design .nav-inferior, body.modo-photography .nav-inferior { opacity: 0; pointer-events: none; visibility: hidden; }
+
+        body.lang-eng #btn-main-eng { color: var(--color-azul); }
+        body.lang-esp #btn-main-esp { color: var(--color-azul); }
+        body.modo-work #btn-work-main-en, body.modo-design #btn-work-main-en, body.modo-photography #btn-work-main-en,
+        body.modo-work #btn-work-main-es, body.modo-design #btn-work-main-es, body.modo-photography #btn-work-main-es { color: var(--color-azul); }
+
+        /* --- TRIPLE CARRUSEL --- */
+        .carruseles-padre { grid-column: 1 / -1; grid-row: 2; position: relative; width: 100%; height: 100%; align-self: center; z-index: 10; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        .carruseles-padre::before { content: ""; display: block; width: calc(((100% - (var(--gap-reticula) * 7)) / 8) * 4 + (var(--gap-reticula) * 3)); aspect-ratio: 638 / 398; }
+
+        #carrusel-inicio, #carrusel-design, #carrusel-photography { position: absolute; inset: 0; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        #carrusel-inicio { opacity: 1; visibility: visible; pointer-events: auto; }
+        body.modo-design #carrusel-inicio, body.modo-photography #carrusel-inicio { opacity: 0; visibility: hidden; pointer-events: none; }
+        #carrusel-design { opacity: 0; visibility: hidden; pointer-events: none; z-index: 11; }
+        body.modo-design #carrusel-design { opacity: 1; visibility: visible; pointer-events: auto; }
+        body.modo-photography #carrusel-design { opacity: 0; visibility: hidden; pointer-events: none; }
+        #carrusel-photography { opacity: 0; visibility: hidden; pointer-events: none; z-index: 11; }
+        body.modo-photography #carrusel-photography { opacity: 1; visibility: visible; pointer-events: auto; }
+        body.modo-design #carrusel-photography { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .carta-inicio { position: absolute; top: 0; left: 0; width: calc(((100% - (var(--gap-reticula) * 7)) / 8) * 4 + (var(--gap-reticula) * 3)); aspect-ratio: 638 / 398; will-change: transform; background-size: cover; background-position: center; background-color: #2a2a2a; }
+        .carta-design, .carta-photography { position: absolute; top: 0; bottom: 0; left: 0; margin: auto 0; height: 100%; width: auto; max-width: 65vw; aspect-ratio: 638 / 398; will-change: transform; background-size: cover; background-position: center; cursor: pointer; background-color: #2a2a2a; }
+        
+        .c1 { background-image: url('img/DESIGN_7.webp'); } .c2 { background-image: url('img/DESIGN_5.webp'); } .c3 { background-image: url('img/DESIGN_4.webp'); } .c4 { background-image: url('img/FOTO_6.webp'); } .c5 { background-image: url('img/FOTO_4.webp'); } .c6 { background-image: url('img/FOTO_1.webp'); } 
+        .d1 { background-image: url('img/DESIGN_7.webp'); } .d2 { background-image: url('img/DESIGN_5.webp'); } .d3 { background-image: url('img/DESIGN_4.webp'); } .d4 { background-image: url('img/DESIGN_1.webp'); } .d5 { background-image: url('img/DESIGN_2.webp'); } .d6 { background-image: url('img/DESIGN_6.webp'); } .d7 { background-image: url('img/DESIGN_8.webp'); } .d8 { background-image: url('img/DESIGN_3.webp'); }
+        .p1 { background-image: url('img/FOTO_1.webp'); } .p2 { background-image: url('img/FOTO_2.webp'); } .p3 { background-image: url('img/FOTO_3.webp'); } .p4 { background-image: url('img/FOTO_4.webp'); } .p5 { background-image: url('img/FOTO_5.webp'); } .p6 { background-image: url('img/FOTO_6.webp'); } .p7 { background-image: url('img/FOTO_7.webp'); } .p8 { background-image: url('img/FOTO_8.webp'); }
+
+        .caja-texto-central { grid-column: 1 / -1; grid-row: 3; justify-self: center; align-self: start; overflow: hidden; max-height: 100px; margin-bottom: 30px; transition: max-height 0.5s, margin-bottom 0.5s; }
+        body.modo-design .caja-texto-central, body.modo-photography .caja-texto-central { max-height: 0; margin-bottom: 0; }
+        .texto-central { text-align: center; line-height: 19px; transition: opacity 0.4s; }
+        body.modo-design .texto-central, body.modo-photography .texto-central { opacity: 0; pointer-events: none; }
+
+        .contenedor-progreso { grid-column: 4 / 6; grid-row: 4; justify-self: stretch; align-self: end; height: 5px; background-color: rgba(0, 0, 0, 0.15); margin-bottom: 7px; opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 0.4s; z-index: 50; }
+        .barra-progreso { width: 100%; height: 100%; background-color: var(--color-negro); transform-origin: left center; transform: scaleX(0); will-change: transform; }
+        body.modo-design .contenedor-progreso, body.modo-photography .contenedor-progreso { opacity: 1; pointer-events: auto; visibility: visible; }
+
+        .sensor-1 { grid-column: 1; grid-row: 2; visibility: hidden; pointer-events: none; }
+        .sensor-2 { grid-column: 2; grid-row: 2; visibility: hidden; pointer-events: none; }
+
+
+        /* ================================================= */
+        /* PANTALLAS Y MENÚ WORK                             */
+        /* ================================================= */
+        .pantalla-transicion { position: fixed; inset: 0; background-color: var(--color-fondo); z-index: 200; opacity: 0; pointer-events: none; display: flex; justify-content: center; align-items: center; transition: opacity 0.3s; }
+        .texto-transicion { font-family: var(--fuente-principal); font-weight: 700; font-size: 90px; text-transform: uppercase; color: var(--color-negro); position: absolute; overflow: hidden; display: none; flex-direction: column; height: 100px; line-height: 100px; }
+        .texto-transicion.mostrar { display: inline-flex; }
+
+        .overlay-work { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px); z-index: 150; opacity: 0; pointer-events: none; transition: opacity 0.5s; cursor: pointer; }
+        .contenido-menu-work { position: fixed; inset: 0; padding: 40px 60px; display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--gap-reticula); grid-template-rows: auto 1fr auto auto; z-index: 160; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        body.modo-work .overlay-work, body.modo-work .contenido-menu-work { opacity: 1; pointer-events: auto; }
+
+        .texto-work { font-family: var(--fuente-principal); font-weight: 700; font-size: 14px; text-transform: uppercase; color: #E0E0E0; }
+        .btn-work-close { grid-column: 1 / -1; grid-row: 1; justify-self: center; align-self: start; }
+        .work-reloj { grid-column: 6 / -1; grid-row: 1; justify-self: end; align-self: start; }
+        .menu-work-central { grid-column: 1 / -1; grid-row: 2 / 4; justify-self: center; align-self: center; display: flex; gap: 50px; }
+        .work-ubicacion { grid-column: 1 / 4; grid-row: 4; justify-self: start; align-self: end; }
+        .work-copyright { grid-column: 6 / -1; grid-row: 4; justify-self: end; align-self: end; }
+        .social-work { grid-column: 1 / -1; grid-row: 4; justify-self: center; align-self: end; display: flex; gap: 50px; }
+
+        body.modo-work, body.modo-about { overflow: hidden; }
+
+
+        /* ================================================= */
+        /* ECOSISTEMA ABOUT ME                               */
+        /* ================================================= */
+        #pantalla-about {
+            position: fixed; inset: 0; z-index: 100;
+            background-color: var(--color-fondo);
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        body.modo-about #pantalla-about { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        .scroll-about {
+            position: absolute; inset: 0; z-index: 1;
+            overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+        }
+        .scroll-about::-webkit-scrollbar { display: none; }
+
+        .about-interior {
+            width: 100%;
+            padding: 150px 60px 150px 60px; 
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 45px var(--gap-reticula); 
+            box-sizing: border-box;
+        }
+
+        .about-num { font-family: var(--fuente-principal); font-weight: 700; font-size: 14px; color: var(--color-negro); margin: 0; grid-column: 1 / 2; }
+        .about-columna-textos { grid-column: 3 / 6; display: flex; flex-direction: column; align-items: flex-start; }
+        .about-columna-textos > *:last-child, .about-columna-contact > *:last-child { margin-bottom: 0 !important; }
+
+        .about-caja-imagen {
+            grid-column: 7 / 9; grid-row: 1; width: 100%; max-width: 320px;
+            aspect-ratio: 3 / 4; align-self: start; background-color: #2a2a2a; 
+            position: relative; overflow: hidden;
+        }
+
+        .about-columna-contact { grid-column: 7 / 9; grid-row: 2 / span 6; display: flex; flex-direction: column; align-items: flex-start; }
+        .about-link-email { color: var(--color-azul); text-decoration: none; transition: opacity 0.3s ease; }
+        .about-link-email:hover { opacity: 0.6; }
+
+        .about-titulo { font-family: var(--fuente-principal); font-weight: 700; font-size: 14px; text-transform: uppercase; color: var(--color-negro); margin-bottom: 35px; text-align: left; }
+        .about-subtitulo { font-family: var(--fuente-principal); font-weight: 700; font-size: 12px; text-transform: uppercase; color: var(--color-negro); margin-top: 0; margin-bottom: 12px; text-align: left; }
+        .about-parrafo { font-family: var(--fuente-principal); font-weight: 400; font-size: 12px; color: var(--color-negro); margin-bottom: 22px; text-align: left; line-height: 20px; }
+        .about-puntual { font-family: var(--fuente-principal); font-weight: 400; font-size: 12px; color: #6D6D6D; margin-bottom: 16px; text-align: left; line-height: 20px; }
+
+        /* 2. HUD CAMALEÓN */
+        .reticula-camaleon {
+            position: fixed; inset: 0; padding: 40px 60px; pointer-events: none; z-index: 110;
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--gap-reticula); grid-template-rows: auto 1fr auto auto;
+            mix-blend-mode: difference;
+        }
+        .reticula-camaleon .btn-animado, .reticula-camaleon .logo-home { pointer-events: auto; color: var(--color-fondo); }
+        .reticula-camaleon .texto-complementario { color: var(--color-fondo); }
+        .reticula-camaleon img { filter: brightness(0) invert(0.88); }
+
+        /* 3. HUD AZUL */
+        .reticula-azul {
+            position: fixed; inset: 0; padding: 40px 60px; pointer-events: none; z-index: 120;
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--gap-reticula); grid-template-rows: auto 1fr auto auto;
+        }
+        .reticula-azul .btn-animado, .reticula-azul .logo-home { pointer-events: auto; color: var(--color-azul); }
+        .reticula-azul .texto-complementario { color: var(--color-azul); }
+
+        .spacer { opacity: 0 !important; pointer-events: none !important; visibility: hidden; }
+
+        body.lang-eng .reticula-camaleon #btn-eng-cam { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        body.lang-eng .reticula-azul #btn-esp-azul { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        body.lang-esp .reticula-camaleon #btn-esp-cam { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        body.lang-esp .reticula-azul #btn-eng-azul { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+
+        .reticula-camaleon .btn-animado:hover, body.modo-work .reticula-camaleon .btn-animado { color: var(--color-azul-invertido) !important; }
+        .reticula-azul .btn-animado:hover { color: var(--color-azul) !important; }
+        body.modo-work .reticula-azul #btn-work-diff { color: var(--color-azul) !important; }
+
+    </style>
+</head>
+<body class="lang-eng"> 
+
+    <div class="pantalla-transicion" id="pantalla-transicion">
+        <div class="texto-transicion txt-en" id="tx-design-en">DESIGN</div>
+        <div class="texto-transicion txt-es" id="tx-design-es">DISEÑO</div>
+        
+        <div class="texto-transicion txt-en" id="tx-photography-en">PHOTOGRAPHY</div>
+        <div class="texto-transicion txt-es" id="tx-photography-es">FOTOGRAFÍA</div>
+        
+        <div class="texto-transicion txt-en" id="tx-about-en">ABOUT ME</div>
+        <div class="texto-transicion txt-es" id="tx-about-es">SOBRE MÍ</div>
+        
+        <div class="texto-transicion txt-en" id="tx-home-en">HOME</div>
+        <div class="texto-transicion txt-es" id="tx-home-es">INICIO</div>
+    </div>
+
+    <div class="overlay-work" id="btn-cerrar-work-overlay"></div>
+    <div class="contenido-menu-work">
+        <a href="#" class="logo-home" id="btn-logo-close-work"><img src="img/LOGO_DRAFT_BLANCO.webp" alt="Draft Logo"></a>
+        
+        <div class="btn-work-close txt-en" id="btn-txt-close-work-en"><div class="btn-animado-work">CLOSE</div></div>
+        <div class="btn-work-close txt-es" id="btn-txt-close-work-es"><div class="btn-animado-work">CERRAR</div></div>
+        
+        <div class="texto-work work-reloj" id="reloj-work">00:00:00 PM (CET)</div>
+        <div class="menu-work-central">
+            <a href="#" class="btn-animado-work btn-grande txt-en" id="btn-design-work-en">DESIGN</a>
+            <a href="#" class="btn-animado-work btn-grande txt-es" id="btn-design-work-es">DISEÑO</a>
+            <a href="#" class="btn-animado-work btn-grande txt-en" id="btn-photography-work-en">PHOTOGRAPHY</a>
+            <a href="#" class="btn-animado-work btn-grande txt-es" id="btn-photography-work-es">FOTOGRAFÍA</a>
+        </div>
+        <div class="texto-work work-ubicacion">
+            <span class="txt-en">BASED IN MALLORCA, SPAIN</span>
+            <span class="txt-es">UBICADO EN MALLORCA, ESPAÑA</span>
+        </div>
+        <div class="social-work">
+            <a href="https://es.linkedin.com/in/russel-rodrigo-sandoval-arauco-6a30893a4" target="_blank" class="btn-animado-work">LINKEDIN</a>
+            <a href="https://www.instagram.com/draft.rrs?igsh=MTFueWd5NWNkMm4yNg%3D%3D&utm_source=qr" target="_blank" class="btn-animado-work">INSTAGRAM</a>
+        </div>
+        <div class="texto-work work-copyright">© 2026 RUSSEL SANDOVAL</div>
+    </div>
+
+
+    <main class="lienzo-principal">
+        <div class="reticula-maestra">
+            
+            <a href="#" class="logo-home" id="btn-home-main"><img src="img/LOGO_DRAFT_NEGRO.webp" alt="Draft Logo"></a>
+            
+            <div class="nav-superior">
+                <div class="btn-animado txt-en" id="btn-work-main-en">WORK</div>
+                <div class="btn-animado txt-es" id="btn-work-main-es">TRABAJO</div>
+                
+                <div class="btn-animado txt-en" id="btn-about-main-en">ABOUT ME</div>
+                <div class="btn-animado txt-es" id="btn-about-main-es">SOBRE MÍ</div>
+                
+                <a href="img/CV_RUSSEL_SANDOVAL.pdf" target="_blank" class="btn-animado" id="btn-cv-main">CV</a>
+            </div>
+
+            <div class="texto-complementario reloj" id="reloj-mallorca">00:00:00 PM (CET)</div>
+            <div class="sensor-1"></div><div class="sensor-2"></div>
+
+            <div class="carruseles-padre">
+                <div id="carrusel-inicio">
+                    <div class="carta-inicio c1"></div> <div class="carta-inicio c2"></div> <div class="carta-inicio c3"></div>
+                    <div class="carta-inicio c4"></div> <div class="carta-inicio c5"></div> <div class="carta-inicio c6"></div>
+                </div>
+                <div id="carrusel-design">
+                    <div class="carta-design d1"></div> <div class="carta-design d2"></div> <div class="carta-design d3"></div>
+                    <div class="carta-design d4"></div> <div class="carta-design d5"></div> <div class="carta-design d6"></div>
+                    <div class="carta-design d7"></div> <div class="carta-design d8"></div>
+                </div>
+                <div id="carrusel-photography">
+                    <div class="carta-photography p1"></div> <div class="carta-photography p2"></div> <div class="carta-photography p3"></div>
+                    <div class="carta-photography p4"></div> <div class="carta-photography p5"></div> <div class="carta-photography p6"></div>
+                    <div class="carta-photography p7"></div> <div class="carta-photography p8"></div>
+                </div>
+            </div>
+
+            <div class="caja-texto-central">
+                <div class="texto-complementario texto-central">
+                    <span class="txt-en">DRAFT, A VISUAL PLAYGROUND FOCUSED<br>ON GRAPHIC DESIGN AND AUTOMOTIVE PHOTOGRAPHY.<br>TAKING PROJECTS FROM MALLORCA TO THE GLOBAL STAGE.</span>
+                    <span class="txt-es">DRAFT, UN TERRENO DE JUEGO VISUAL CENTRADO<br>EN EL DISEÑO GRÁFICO Y LA FOTOGRAFÍA DE AUTOMOCIÓN.<br>LLEVANDO PROYECTOS DESDE MALLORCA AL ESCENARIO GLOBAL.</span>
+                </div>
+            </div>
+
+            <div class="texto-complementario ubicacion">
+                <span class="txt-en">BASED IN MALLORCA, SPAIN</span>
+                <span class="txt-es">UBICADO EN MALLORCA, ESPAÑA</span>
+            </div>
+            
+            <nav class="nav-inferior">
+                <div class="btn-animado btn-idioma" id="btn-main-eng">EN</div>
+                <div class="btn-animado btn-idioma" id="btn-main-esp">ES</div>
+            </nav>
+
+            <div class="contenedor-progreso"><div class="barra-progreso" id="barra-progreso"></div></div>
+            <div class="texto-complementario copyright">© 2026 RUSSEL SANDOVAL</div>
+        </div>
+    </main>
+
+
+    <div id="pantalla-about">
+        
+        <div class="scroll-about">
+            <div class="about-interior">
+                
+                <div class="about-num" style="grid-row: 1;">01</div>
+                <div class="about-columna-textos" style="grid-row: 1;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">Graphic Designer & Photographer</span>
+                        <span class="txt-es">Diseñador Gráfico y Fotógrafo</span>
+                    </h2>
+                    <p class="about-parrafo">
+                        <span class="txt-en">I'm Russel Sandoval, a Graphic design student based<br>in Mallorca.</span>
+                        <span class="txt-es">Soy Russel Sandoval, estudiante de diseño gráfico<br>ubicado en Mallorca.</span>
+                    </p>
+                    <p class="about-parrafo">
+                        <span class="txt-en">DRAFT is my personal playground. It's where my studies in branding and visual design collide with my passion for automotive photography. I might be at the beginning of my career, but that's exactly my biggest advantage: I have the hunger to experiment, break the rules, and learn fast.</span>
+                        <span class="txt-es">DRAFT es mi terreno de juego personal. Es donde mis estudios en branding y diseño visual chocan con mi pasión por la fotografía de automoción. Puede que esté al principio de mi carrera, pero esa es exactamente mi mayor ventaja: tengo hambre de experimentar, romper las reglas y aprender rápido.</span>
+                    </p>
+                    <p class="about-parrafo">
+                        <span class="txt-en">I use my camera to capture raw energy, and graphic design to give it structure. I'm building my foundation. Always learning. Always iterating.</span>
+                        <span class="txt-es">Uso mi cámara para capturar energía pura, y el diseño gráfico para darle estructura. Estoy construyendo mis cimientos. Siempre aprendiendo. Siempre iterando.</span>
+                    </p>
+                </div>
+                
+                <div class="about-caja-imagen">
+                    <img src="img/PERFIL.webp" style="width:100%; height:100%; object-fit:cover;" alt="Russel Sandoval">
+                </div>
+
+                <div class="about-num" style="grid-row: 2;">02</div>
+                <div class="about-columna-textos" style="grid-row: 2;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">CURRENTLY</span>
+                        <span class="txt-es">ACTUALMENTE</span>
+                    </h2>
+                    <p class="about-parrafo">
+                        <span class="txt-en">Graphic design student<br>Photographer</span>
+                        <span class="txt-es">Estudiante de diseño gráfico<br>Fotógrafo</span>
+                    </p>
+                </div>
+                
+                <div class="about-columna-contact">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">CONTACT</span>
+                        <span class="txt-es">CONTACTO</span>
+                    </h2>
+                    <p class="about-parrafo" style="margin-bottom: 35px;">
+                        <a href="mailto:russelsanoval70@gmail.com" class="about-link-email">russelsanoval70@gmail.com</a>
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <a href="https://www.instagram.com/draft.rrs?igsh=MTFueWd5NWNkMm4yNg%3D%3D&utm_source=qr" target="_blank" class="btn-animado">INSTAGRAM</a>
+                        <a href="https://es.linkedin.com/in/russel-rodrigo-sandoval-arauco-6a30893a4" target="_blank" class="btn-animado">LINKEDIN</a>
+                    </div>
+                </div>
+
+                <div class="about-num" style="grid-row: 3;">03</div>
+                <div class="about-columna-textos" style="grid-row: 3;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">LOCATION</span>
+                        <span class="txt-es">UBICACIÓN</span>
+                    </h2>
+                    <p class="about-parrafo">
+                        <span class="txt-en">Mallorca, Spain</span>
+                        <span class="txt-es">Mallorca, España</span>
+                    </p>
+                </div>
+
+                <div class="about-num" style="grid-row: 4;">04</div>
+                <div class="about-columna-textos" style="grid-row: 4;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">EXPERIENCE</span>
+                        <span class="txt-es">EXPERIENCIA</span>
+                    </h2>
+                    <p class="about-parrafo">
+                        <span class="txt-en">OPERATIONS & CLIENT SERVICE<br>Shell (Valldemossa, Mallorca)<br>2024</span>
+                        <span class="txt-es">OPERACIONES Y ATENCIÓN AL CLIENTE<br>Shell (Valldemossa, Mallorca)<br>2024</span>
+                    </p>
+                    <p class="about-parrafo" style="margin-top: 24px;">
+                        <span class="txt-en">GRAPHIC DESIGNER & PREPRESS<br>Printco (palma, Mallorca)<br>2025</span>
+                        <span class="txt-es">DISEÑADOR GRÁFICO Y PREIMPRESIÓN<br>Printco (Palma, Mallorca)<br>2025</span>
+                    </p>
+                </div>
+
+                <div class="about-num" style="grid-row: 5;">05</div>
+                <div class="about-columna-textos" style="grid-row: 5;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">EDUCATION</span>
+                        <span class="txt-es">EDUCACIÓN</span>
+                    </h2>
+                    <h3 class="about-subtitulo">
+                        <span class="txt-en">Intermediate Vocational Degree in Digital Prepress</span>
+                        <span class="txt-es">Grado Medio en Preimpresión Digital</span>
+                    </h3>
+                    <p class="about-puntual">Ies Josep Maria Llompart<br>2021-2023</p>
+                    <h3 class="about-subtitulo" style="margin-top: 32px;">
+                        <span class="txt-en">Higher Vocational Degree in Print & Multimedia Design</span>
+                        <span class="txt-es">Grado Superior en Diseño Impreso y Multimedia</span>
+                    </h3>
+                    <p class="about-puntual">
+                        <span class="txt-en">Ies Josep Maria Llompart<br>2024-Present</span>
+                        <span class="txt-es">Ies Josep Maria Llompart<br>2024-Presente</span>
+                    </p>
+                </div>
+
+                <div class="about-num" style="grid-row: 6;">06</div>
+                <div class="about-columna-textos" style="grid-row: 6;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">LANGUAGES</span>
+                        <span class="txt-es">IDIOMAS</span>
+                    </h2>
+                    <p class="about-parrafo">
+                        <span class="txt-en">Spanish — Native<br>English — Professional Working</span>
+                        <span class="txt-es">Español — Nativo<br>Inglés — Competencia Profesional</span>
+                    </p>
+                </div>
+
+                <div class="about-num" style="grid-row: 7;">07</div>
+                <div class="about-columna-textos" style="grid-row: 7;">
+                    <h2 class="about-titulo">
+                        <span class="txt-en">TOOLKIT</span>
+                        <span class="txt-es">HERRAMIENTAS</span>
+                    </h2>
+                    <p class="about-parrafo">
+                        <span class="txt-en">Adobe Creative Suite<br>Figma<br>Digital Photography</span>
+                        <span class="txt-es">Adobe Creative Suite<br>Figma<br>Fotografía Digital</span>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="reticula-camaleon">
+            <a href="#" class="logo-home" id="btn-home-diff"><img src="img/LOGO_DRAFT_NEGRO.webp" alt="Draft Logo"></a>
+            <div class="nav-superior">
+                <div class="btn-animado txt-en" id="btn-work-diff-en">WORK</div>
+                <div class="btn-animado txt-es" id="btn-work-diff-es">TRABAJO</div>
+                
+                <div class="btn-animado spacer txt-en">ABOUT ME</div> 
+                <div class="btn-animado spacer txt-es">SOBRE MÍ</div> 
+                
+                <a href="img/CV_RUSSEL_SANDOVAL.pdf" target="_blank" class="btn-animado" id="btn-cv-diff">CV</a>
+            </div>
+            <div class="texto-complementario reloj" id="reloj-about">00:00:00 PM (CET)</div>
+            <div class="texto-complementario ubicacion">
+                <span class="txt-en">BASED IN MALLORCA, SPAIN</span>
+                <span class="txt-es">UBICADO EN MALLORCA, ESPAÑA</span>
+            </div>
+            <nav class="nav-inferior">
+                <div class="btn-animado btn-idioma" id="btn-eng-cam">EN</div>
+                <div class="btn-animado btn-idioma" id="btn-esp-cam">ES</div>
+            </nav>
+            <div class="texto-complementario copyright">© 2026 RUSSEL SANDOVAL</div>
+        </div>
+
+        <div class="reticula-azul">
+            <a href="#" class="logo-home spacer"><img src="img/LOGO_DRAFT_NEGRO.webp"></a>
+            <div class="nav-superior">
+                <div class="btn-animado spacer txt-en" id="btn-work-azul-en">WORK</div>
+                <div class="btn-animado spacer txt-es" id="btn-work-azul-es">TRABAJO</div>
+                
+                <div class="btn-animado txt-en" id="btn-about-azul-en">ABOUT ME</div> 
+                <div class="btn-animado txt-es" id="btn-about-azul-es">SOBRE MÍ</div> 
+                
+                <a href="img/CV_RUSSEL_SANDOVAL.pdf" target="_blank" class="btn-animado spacer" id="btn-cv-azul">CV</a>
+            </div>
+            <div class="texto-complementario reloj spacer"></div>
+            <div class="texto-complementario ubicacion spacer"></div>
+            <nav class="nav-inferior">
+                <div class="btn-animado btn-idioma" id="btn-eng-azul">EN</div> 
+                <div class="btn-animado btn-idioma" id="btn-esp-azul">ES</div> 
+            </nav>
+            <div class="texto-complementario copyright spacer"></div>
+        </div>
+
+    </div>
+
+    <script>
+        document.querySelectorAll('.btn-animado, .btn-animado-work, .texto-transicion').forEach(boton => {
+            const texto = boton.textContent.trim(); 
+            boton.innerHTML = '';
+            const cajaO = document.createElement('span'); cajaO.className = 'texto-original';
+            const cajaC = document.createElement('span'); cajaC.className = 'texto-copia';
+            texto.split('').forEach((l, i) => {
+                const isSpace = l === ' ';
+                const sO = document.createElement('span'); sO.innerHTML = isSpace ? '&nbsp;' : l; sO.style.transitionDelay = `${i * 0.02}s`;
+                const sC = document.createElement('span'); sC.innerHTML = isSpace ? '&nbsp;' : l; sC.style.transitionDelay = `${i * 0.02}s`;
+                cajaO.appendChild(sO); cajaC.appendChild(sC);
+            });
+            boton.appendChild(cajaO); boton.appendChild(cajaC);
+        });
+
+        const configReloj = { timeZone: 'Europe/Madrid', hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        function actualizarReloj() {
+            const timeString = `${new Date().toLocaleTimeString('en-US', configReloj)} (CET)`;
+            const r1 = document.getElementById('reloj-mallorca');
+            const r2 = document.getElementById('reloj-work');
+            const r3 = document.getElementById('reloj-about');
+            if (r1) r1.innerText = timeString;
+            if (r2) r2.innerText = timeString;
+            if (r3) r3.innerText = timeString;
+        }
+        setInterval(actualizarReloj, 1000); actualizarReloj();
+
+
+        /* --- LÓGICA UNIFICADA DE IDIOMAS --- */
+        const setLanguage = (lang) => {
+            if (lang === 'ESP') {
+                document.body.classList.remove('lang-eng');
+                document.body.classList.add('lang-esp');
+            } else {
+                document.body.classList.remove('lang-esp');
+                document.body.classList.add('lang-eng');
+            }
+        };
+
+        document.querySelectorAll('.btn-idioma').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (btn.textContent.includes('ES')) setLanguage('ESP');
+                else setLanguage('ENG');
+            });
+        });
+
+
+        /* --- NAVEGACIÓN Y TRANSICIONES SEGURAS --- */
+        const alternarMenuWork = (abrir) => {
+            if (abrir) document.body.classList.add('modo-work');
+            else document.body.classList.remove('modo-work');
+        };
+
+        const resetScrollGSAP = () => { window.scrollTo(0, 0); setTimeout(() => ScrollTrigger.refresh(), 50); };
+        
+        const pantallaT = document.getElementById('pantalla-transicion');
+        const textosT = document.querySelectorAll('.texto-transicion');
+
+        const ejecutarTransicion = (claseModo, idTextoCortina) => {
+            textosT.forEach(t => t.classList.remove('mostrar', 'activado'));
+            
+            const isEsp = document.body.classList.contains('lang-esp');
+            const textoActivo = document.getElementById(idTextoCortina + (isEsp ? '-es' : '-en')) || document.getElementById(idTextoCortina);
+            
+            textoActivo.classList.add('mostrar');
+
+            pantallaT.style.opacity = '1';
+            pantallaT.style.pointerEvents = 'auto';
+            
+            setTimeout(() => textoActivo.classList.add('activado'), 100);
+            setTimeout(() => {
+                document.body.classList.remove('modo-work', 'modo-design', 'modo-photography', 'modo-about');
+                if (claseModo !== '') { document.body.classList.add(claseModo); }
+                resetScrollGSAP();
+            }, 800); 
+            setTimeout(() => {
+                pantallaT.style.opacity = '0';
+                pantallaT.style.pointerEvents = 'none';
+                textoActivo.classList.remove('activado');
+            }, 1800); 
+        };
+
+        const bindElements = (ids, handler) => {
+            ids.split(',').forEach(id => {
+                const el = document.getElementById(id.trim());
+                if (el) el.addEventListener('click', handler);
+            });
+        };
+
+        bindElements('btn-work-main-en, btn-work-main-es, btn-work-diff-en, btn-work-diff-es, btn-work-azul-en, btn-work-azul-es', (e) => { e.preventDefault(); alternarMenuWork(true); });
+        
+        bindElements('btn-cerrar-work-overlay, btn-txt-close-work-en, btn-txt-close-work-es', (e) => { e.preventDefault(); alternarMenuWork(false); });
+        
+        bindElements('btn-design-work-en, btn-design-work-es', (e) => { e.preventDefault(); ejecutarTransicion('modo-design', 'tx-design'); });
+        
+        bindElements('btn-photography-work-en, btn-photography-work-es', (e) => { e.preventDefault(); ejecutarTransicion('modo-photography', 'tx-photography'); });
+        
+        bindElements('btn-about-main-en, btn-about-main-es, btn-about-azul-en, btn-about-azul-es', (e) => { e.preventDefault(); ejecutarTransicion('modo-about', 'tx-about'); });
+
+        const goHome = (e) => {
+            e.preventDefault(); 
+            if (!document.body.classList.contains('modo-design') && !document.body.classList.contains('modo-photography') && !document.body.classList.contains('modo-about') && !document.body.classList.contains('modo-work')) {
+                resetScrollGSAP(); return;
+            }
+            ejecutarTransicion('', 'tx-home');
+        };
+        
+        bindElements('btn-home-main, btn-home-diff, btn-logo-close-work', goHome);
+
+
+        /* --- GSAP MOTOR --- */
+        gsap.registerPlugin(ScrollTrigger);
+        const getW = () => document.querySelector('.sensor-2').getBoundingClientRect().left - document.querySelector('.sensor-1').getBoundingClientRect().left;
+        
+        const posInicialInicio = [2, 6, 10, 14, 18, 22];
+        const pasosInicio = [ [1, 2, 6, 10, 14, 18], [0, 1, 2, 6, 10, 14], [0, 1, 2, 3, 7, 11], [0, 1, 2, 3, 4, 8], [0, 0.8, 1.6, 2.4, 3.2, 4] ];
+        const posInicialGigante = [2, 7, 12, 17, 22, 27, 32, 37]; 
+        const pasosGigante = [ [1, 2, 7, 12, 17, 22, 27, 32], [0, 1, 2, 7, 12, 17, 22, 27], [0, 1, 2, 3, 8, 13, 18, 23], [0, 1, 2, 3, 4, 9, 14, 19], [0, 1, 2, 3, 4, 5, 10, 15], [0, 1, 2, 3, 4, 5, 6, 11] ];
+
+        const cartasInicio = gsap.utils.toArray('.carta-inicio');
+        const cartasDesign = gsap.utils.toArray('.carta-design');
+        const cartasPhotography = gsap.utils.toArray('.carta-photography');
+
+        cartasInicio.forEach((c, i) => gsap.set(c, { x: () => posInicialInicio[i] * getW() }));
+        cartasDesign.forEach((c, i) => gsap.set(c, { x: () => posInicialGigante[i] * getW() }));
+        cartasPhotography.forEach((c, i) => gsap.set(c, { x: () => posInicialGigante[i] * getW() }));
+
+        let isCarouselComplete = false;
+        const aplicarHover = (arrayCartas) => {
+            arrayCartas.forEach((carta, index) => {
+                if (index < arrayCartas.length - 1) {
+                    carta.addEventListener('mouseenter', () => {
+                        if (isCarouselComplete) { carta.style.zIndex = 50; gsap.to(carta, { scale: 1.03, boxShadow: "0px 15px 35px rgba(0,0,0,0.4)", duration: 0.25, ease: "power2.out", overwrite: "auto" }); }
+                    });
+                    carta.addEventListener('mouseleave', () => {
+                        if (carta.style.zIndex === '50') { carta.style.zIndex = ''; gsap.to(carta, { scale: 1, boxShadow: "0px 0px 0px rgba(0,0,0,0)", duration: 0.25, ease: "power2.out", overwrite: "auto" }); }
+                    });
+                }
+            });
+        };
+        aplicarHover(cartasDesign); aplicarHover(cartasPhotography);
+
+        let tl = gsap.timeline({ 
+            scrollTrigger: { 
+                trigger: ".lienzo-principal", pin: true, scrub: 1, start: "top top", end: "+=6500", invalidateOnRefresh: true,
+                onUpdate: (self) => { isCarouselComplete = self.progress > 0.98; }
+            }
+        });
+        
+        const totalStepsDesign = pasosGigante.length + 1; 
+        const durationInicio = totalStepsDesign / pasosInicio.length; 
+
+        pasosInicio.forEach((st, stepIdx) => { cartasInicio.forEach((c, i) => { tl.to(c, { x: () => st[i] * getW(), ease: "none", duration: durationInicio }, stepIdx * durationInicio); }); });
+        pasosGigante.forEach((st, stepIdx) => {
+            cartasDesign.forEach((c, i) => { tl.to(c, { x: () => st[i] * getW(), ease: "none", duration: 1 }, stepIdx); });
+            cartasPhotography.forEach((c, i) => { tl.to(c, { x: () => st[i] * getW(), ease: "none", duration: 1 }, stepIdx); });
+        });
+
+        cartasDesign.forEach((c, i) => { tl.to(c, { x: () => { const padreW = document.querySelector('.carruseles-padre').clientWidth; return ((padreW - c.clientWidth) / 7) * i; }, ease: "none", duration: 1 }, pasosGigante.length); });
+        cartasPhotography.forEach((c, i) => { tl.to(c, { x: () => { const padreW = document.querySelector('.carruseles-padre').clientWidth; return ((padreW - c.clientWidth) / 7) * i; }, ease: "none", duration: 1 }, pasosGigante.length); });
+
+        tl.to('.barra-progreso', { scaleX: 1, ease: "none", duration: totalStepsDesign }, 0);
+
+
+        /* --- CURSOR PERSONALIZADO --- */
+        const cursor = document.createElement('div');
+        cursor.className = 'cursor-personalizado';
+        document.body.appendChild(cursor);
+
+        const setX = gsap.quickSetter(cursor, "x", "px");
+        const setY = gsap.quickSetter(cursor, "y", "px");
+
+        window.addEventListener("mousemove", e => {
+            setX(e.clientX);
+            setY(e.clientY);
+        });
+
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.closest('a, .btn-animado, .btn-animado-work, .logo-home, .carta-inicio, .carta-design, .carta-photography, .btn-idioma')) {
+                cursor.style.opacity = '0';
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            if (e.target.closest('a, .btn-animado, .btn-animado-work, .logo-home, .carta-inicio, .carta-design, .carta-photography, .btn-idioma')) {
+                cursor.style.opacity = '1';
+            }
+        });
+    </script>
+</body>
+</html>
